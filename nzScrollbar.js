@@ -15,7 +15,6 @@
                 '</div>'
             ].join(' '),
             link: function($scope, el, attrs) {
-                console.log(el);
 
                 var container,
                     inner,
@@ -90,6 +89,7 @@
                     // Styles
                     indicator.css({
                         height: ((containerHeight - containerPadding) / innerHeight) * (containerHeight - containerPadding) + 'px',
+                        display: (containerHeight - containerPadding) / innerHeight >= 1 ? 'none' : 'initial'
                     });
 
                 }
@@ -118,7 +118,7 @@
                         transform: 'translateY(' + (-offset) + 'px)'
                     });
                     indicator.css({
-                        transform: 'translateY(' + (offset / max * ((containerHeight - containerPadding * 2) - parseInt(indicator.css('height')))) + 'px)'
+                        transform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)'
                     });
                     return offset;
                 }
