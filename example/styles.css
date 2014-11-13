@@ -1,0 +1,10 @@
+body {
+    padding: 2em 1em;
+}
+.card {
+    -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, .1);
+    padding: 1em;
+    height: 300px;
+    overflow: hidden;
+}
