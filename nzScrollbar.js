@@ -2,14 +2,16 @@
 
     var module = angular.module('nzScrollbar', []);
 
-    module.directive('nzScrollbar', function($interval) {
+    module.directive('nzScrollbar', function($browser, $rootScope, $interval, $timeout, $q, $exceptionHandler) {
         return {
             restrict: 'EA',
             transclude: true,
             template: [
                 '<div class="nzScrollbar-outer">',
                 '   <div ng-transclude class="nzScrollbar-inner"></div>',
-                '   <div class="nzScrollbar-indicator"></div>',
+                '   <div class="nzScrollbar-indicator-wrap">',
+                '       <div class="nzScrollbar-indicator">',
+                '   </div>',
                 '</div>'
             ].join(' '),
             link: function($scope, el, attrs) {
@@ -25,8 +27,10 @@
                     min,
                     max,
                     offset,
+                    oldOffset,
                     reference,
                     pressed,
+                    inidicatorPressed,
                     xform,
                     velocity,
                     frame,
@@ -37,57 +41,61 @@
                     timeConstant;
 
                 var wheelSpeed = 40;
+                var deferreds = {},
+                    methods = {},
+                    uuid = 0;
 
                 container = el;
                 outer = angular.element(el[0].querySelector('.nzScrollbar-outer'));
                 inner = angular.element(el[0].querySelector('.nzScrollbar-inner'));
                 indicator = angular.element(el[0].querySelector('.nzScrollbar-indicator'));
 
-                containerHeight = parseInt(getComputedStyle(el[0]).height, 10);
-                containerPadding = parseInt(getComputedStyle(el[0]).padding, 10);
-                innerHeight = parseInt(getComputedStyle(inner[0]).height, 10);
-                max = innerHeight - containerHeight + containerPadding * 2;
-                max = max < 0 ? 0 : max;
-                offset = min = 0;
-                pressed = false;
-                timeConstant = 325; // ms
+                // Init Watchers
+                window.addEventListener('resize', debounce(init, 200));
+                container[0].addEventListener('mouseenter', init);
 
 
-                // Styles
-                outer.css({
-                    position: 'relative',
-                    height: '100%',
-                    overflow: 'hidden',
-                });
-
-                indicator.css({
-                    position: 'absolute',
-                    zIndex: 99,
-                    top: '0px',
-                    right: '3px',
-                    width: '4px',
-                    height: ((containerHeight - containerPadding) / innerHeight) * (containerHeight - containerPadding) + 'px',
-                    backgroundColor: 'black',
-                    opacity: '.05',
-                    border: 'none',
-                    margin: '5px 0 5px 0',
-                    borderRadius: '1px',
-                    transitionDuration: 'width .2s ease, height .2s ease, opacity .2s ease, background-color .2s ease, border-radius .2s ease',
-                });
-
-
-
-                //Events
-
+                // Touch Events
                 container[0].addEventListener('touchstart', tap);
 
+                // Click Events
+                indicator[0].addEventListener('mousedown', indicatorClick);
+
+                // Scroll Events
                 if (container[0].addEventListener) {
                     container[0].addEventListener("mousewheel", wheel, false); // IE9, Chrome, Safari, Opera
                     container[0].addEventListener("DOMMouseScroll", wheel, false); // Firefox
                 } else container[0].attachEvent("onmousewheel", wheel); // IE 6/7/8
 
-                var moveEvent = document.createEvent("HTMLEvents");
-                moveEvent.initEvent("move", true, true);
+
+
+                init();
+
+
+                function init() {
+                    console.log('init');
+                    containerHeight = parseInt(getComputedStyle(el[0]).height, 10);
+                    containerPadding = parseInt(getComputedStyle(el[0]).padding, 10);
+                    innerHeight = parseInt(getComputedStyle(inner[0]).height, 10);
+                    max = innerHeight - containerHeight + containerPadding * 2;
+                    max = max < 0 ? 0 : max;
+                    offset = min = 0;
+                    pressed = false;
+                    timeConstant = 325; // ms
+
+
+                    // Styles
+
+                    console.log((containerHeight - containerPadding) / innerHeight);
+
+                    indicator.css({
+                        height: ((containerHeight - containerPadding) / innerHeight) * (containerHeight - containerPadding) + 'px',
+                    });
+
+                }
+
+
+
 
 
 
@@ -112,6 +120,7 @@
                     indicator.css({
                         transform: 'translateY(' + (offset / max * ((containerHeight - containerPadding * 2) - parseInt(indicator.css('height')))) + 'px)'
                     });
+                    return offset;
                 }
 
                 function track() {
@@ -127,7 +136,7 @@
                     velocity = 0.8 * v + 0.2 * velocity;
                 }
 
-                function autoScroll() {
+                function autoScroll(isIndicator) {
                     var elapsed, delta;
 
                     if (amplitude) {
@@ -144,32 +153,70 @@
 
                 function wheel(e) {
                     e = window.event || e; // old IE support
-                    var wheelSpeedDelta = -(e.deltaX || e.detail || (-1 / 3 * e.wheelDelta)) / 40;
-                    console.log(wheelSpeedDelta);
+                    var wheelSpeedDelta = -(e.deltaX || e.deltaY ? e.deltaY : null || e.detail || (-1 / 3 * e.wheelDelta)) / 40;
                     offset -= wheelSpeedDelta * 30;
 
                     scroll(offset);
 
-                    el[0].dispatchEvent(moveEvent);
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.returnValue = false;
-                    return false;
-
-
-                    /*
-                    var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-                    console.log(delta);
-                    scroll(offset - delta * 5);
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.returnValue = false;
-                    return false;*/
+                    if (offset === 0 || offset === max) {
+                        return;
+                    } else {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.returnValue = false;
+                        return false;
+                    }
                 }
+
+                function indicatorClick(e) {
+                    window.addEventListener('mousemove', indicatorDrag);
+                    window.addEventListener('mouseup', indicatorRelease);
+                    container[0].removeEventListener('mouseenter', init);
+                    container.addClass('dragging');
+
+                    indicatorPressed = true;
+                    reference = ypos(e);
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                function indicatorDrag(e) {
+                    var y, delta;
+                    if (indicatorPressed) {
+                        y = ypos(e);
+                        delta = reference - y;
+                        reference = y;
+                        delta *= (innerHeight / (containerHeight - containerPadding));
+                        scroll(offset - delta);
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                function indicatorRelease(e) {
+                    container[0].addEventListener('mouseenter', init);
+                    window.removeEventListener('mousemove', indicatorDrag);
+                    window.removeEventListener('mouseup', indicatorRelease);
+                    container.removeClass('dragging');
+
+                    indicatorPressed = false;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+
+
+
 
                 function tap(e) {
                     container[0].addEventListener('touchmove', drag);
                     container[0].addEventListener('touchend', release);
+
                     pressed = true;
                     reference = ypos(e);
 
@@ -200,8 +247,9 @@
                 }
 
                 function release(e) {
-                    window.removeEventListener('mousemove', drag);
-                    window.removeEventListener('mouseup', release);
+                    container[0].addEventListener('mouseenter', init);
+                    container[0].addEventListener('mousemove', debounce(init, 200));
+
                     pressed = false;
 
                     $interval.cancel(ticker);
@@ -215,6 +263,31 @@
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
+                }
+
+
+
+                function debounce(func, threshold, execAsap) {
+
+                    var timeout;
+
+                    return function debounced() {
+                        var obj = this,
+                            args = arguments;
+
+                        function delayed() {
+                            if (!execAsap)
+                                func.apply(obj, args);
+                            timeout = null;
+                        }
+
+                        if (timeout)
+                            clearTimeout(timeout);
+                        else if (execAsap)
+                            func.apply(obj, args);
+
+                        timeout = setTimeout(delayed, threshold || 100);
+                    };
                 }
 
             }
