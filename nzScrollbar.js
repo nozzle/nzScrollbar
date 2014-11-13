@@ -51,8 +51,8 @@
                 indicator = angular.element(el[0].querySelector('.nzScrollbar-indicator'));
 
                 // Init Watchers
-                window.addEventListener('resize', debounce(init, 200));
-                container[0].addEventListener('mouseenter', init);
+                window.addEventListener('resize', debounce(build, 200));
+                container[0].addEventListener('mouseenter', build);
 
 
                 // Touch Events
@@ -73,7 +73,11 @@
 
 
                 function init() {
-                    console.log('init');
+                    container.addClass('nzScrollbar');
+                    build();
+                }
+
+                function build() {
                     containerHeight = parseInt(getComputedStyle(el[0]).height, 10);
                     containerPadding = parseInt(getComputedStyle(el[0]).padding, 10);
                     innerHeight = parseInt(getComputedStyle(inner[0]).height, 10);
@@ -83,11 +87,7 @@
                     pressed = false;
                     timeConstant = 325; // ms
 
-
                     // Styles
-
-                    console.log((containerHeight - containerPadding) / innerHeight);
-
                     indicator.css({
                         height: ((containerHeight - containerPadding) / innerHeight) * (containerHeight - containerPadding) + 'px',
                     });
@@ -171,7 +171,7 @@
                 function indicatorClick(e) {
                     window.addEventListener('mousemove', indicatorDrag);
                     window.addEventListener('mouseup', indicatorRelease);
-                    container[0].removeEventListener('mouseenter', init);
+                    container[0].removeEventListener('mouseenter', build);
                     container.addClass('dragging');
 
                     indicatorPressed = true;
@@ -197,7 +197,7 @@
                 }
 
                 function indicatorRelease(e) {
-                    container[0].addEventListener('mouseenter', init);
+                    container[0].addEventListener('mouseenter', build);
                     window.removeEventListener('mousemove', indicatorDrag);
                     window.removeEventListener('mouseup', indicatorRelease);
                     container.removeClass('dragging');
@@ -247,8 +247,8 @@
                 }
 
                 function release(e) {
-                    container[0].addEventListener('mouseenter', init);
-                    container[0].addEventListener('mousemove', debounce(init, 200));
+                    container[0].addEventListener('mouseenter', build);
+                    container[0].addEventListener('mousemove', debounce(build, 200));
 
                     pressed = false;
 
