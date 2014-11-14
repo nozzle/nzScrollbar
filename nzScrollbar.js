@@ -73,6 +73,10 @@
 
                 function init() {
                     container.addClass('nzScrollbar');
+                    offset = min = 0;
+                    timeConstant = 325; // ms
+                    pressed = false;
+
                     build();
                 }
 
@@ -82,9 +86,6 @@
                     innerHeight = parseInt(getComputedStyle(inner[0]).height, 10);
                     max = innerHeight - containerHeight + containerPadding * 2;
                     max = max < 0 ? 0 : max;
-                    offset = min = 0;
-                    pressed = false;
-                    timeConstant = 325; // ms
 
                     // Styles
                     indicator.css({
@@ -214,8 +215,8 @@
 
 
                 function tap(e) {
-                    container[0].addEventListener('touchmove', drag);
-                    container[0].addEventListener('touchend', release);
+                    window.addEventListener('touchmove', drag);
+                    window.addEventListener('touchend', release);
 
                     pressed = true;
                     reference = ypos(e);
@@ -247,8 +248,8 @@
                 }
 
                 function release(e) {
-                    container[0].addEventListener('mouseenter', build);
-                    container[0].addEventListener('mousemove', debounce(build, 200));
+                    window.addEventListener('mouseenter', build);
+                    window.addEventListener('mousemove', debounce(build, 200));
 
                     pressed = false;
 
