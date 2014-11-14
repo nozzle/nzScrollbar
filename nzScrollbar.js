@@ -231,9 +231,14 @@
                     clearInterval(ticker);
                     ticker = $interval(track, 10);
 
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
+                    if (offset === 0 || offset === max) {
+                        return;
+                    } else {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.returnValue = false;
+                        return false;
+                    }
                 }
 
                 function drag(e) {
@@ -246,14 +251,9 @@
                             scroll(offset + delta);
                         }
                     }
-                    if (offset === 0 || offset === max) {
-                        return;
-                    } else {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.returnValue = false;
-                        return false;
-                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
                 }
 
                 function release(e) {
