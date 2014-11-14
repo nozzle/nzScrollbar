@@ -250,15 +250,14 @@
                             reference = y;
                             scroll(offset + delta);
                         }
+                        if (offset === 0 || offset === max) {
+                            return;
+                        }
                     }
-                    if (offset === 0 || offset === max) {
-                        return;
-                    } else {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.returnValue = false;
-                        return false;
-                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.returnValue = false;
+                    return false;
                 }
 
                 function release(e) {
