@@ -219,7 +219,6 @@
                     window.addEventListener('touchend', release);
 
                     window.removeEventListener('mouseenter', build);
-                    window.removeEventListener('mousemove', debounce(build, 200));
 
                     pressed = true;
                     reference = ypos(e);
@@ -255,7 +254,6 @@
                     window.removeEventListener('touchend', release);
 
                     window.addEventListener('mouseenter', build);
-                    window.addEventListener('mousemove', debounce(build, 200));
 
                     pressed = false;
 
