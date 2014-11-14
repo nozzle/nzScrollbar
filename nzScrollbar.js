@@ -251,9 +251,14 @@
                             scroll(offset + delta);
                         }
                     }
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
+                    if (offset === 0 || offset === max) {
+                        return;
+                    } else {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.returnValue = false;
+                        return false;
+                    }
                 }
 
                 function release(e) {
