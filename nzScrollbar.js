@@ -116,9 +116,11 @@
                 function scroll(y) {
                     offset = (y > max) ? max : (y < min) ? min : y;
                     inner.css({
+                        webkitTransform: 'translateY(' + (-offset) + 'px)',
                         transform: 'translateY(' + (-offset) + 'px)'
                     });
                     indicator.css({
+                        webkitTransform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)',
                         transform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)'
                     });
                     return offset;
