@@ -73,7 +73,6 @@
 
                 function init() {
                     container.addClass('nzScrollbar');
-                    offset = min = 0;
                     timeConstant = 325; // ms
                     pressed = false;
 
@@ -86,6 +85,7 @@
                     innerHeight = parseInt(getComputedStyle(inner[0]).height, 10);
                     max = innerHeight - containerHeight + containerPadding * 2;
                     max = max < 0 ? 0 : max;
+                    offset = min = 0;
 
                     // Styles
                     indicator.css({
