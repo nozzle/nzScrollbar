@@ -52,8 +52,6 @@
 
                     // Init Watchers
                     window.addEventListener('resize', debounce(build, 200));
-                    container[0].addEventListener('mouseenter', build);
-
 
                     // Touch Events
                     container[0].addEventListener('touchstart', tap);
