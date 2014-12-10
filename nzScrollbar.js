@@ -65,7 +65,12 @@
                         container[0].addEventListener("DOMMouseScroll", wheel, false); // Firefox
                     } else container[0].attachEvent("onmousewheel", wheel); // IE 6/7/8
 
-
+                    if (window.addResizeListener) {
+                        window.addResizeListener(inner[0], build);
+                        $scope.$on('$destroy', function() {
+                            window.removeResizeListener(inner[0], build);
+                        });
+                    }
 
                     init();
 
