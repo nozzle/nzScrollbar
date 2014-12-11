@@ -38,7 +38,8 @@
                         ticker,
                         amplitude,
                         target,
-                        timeConstant;
+                        timeConstant,
+                        useCssTranslate = attrs.useCssTranslate !== "false";
 
                     var wheelSpeed = 40;
                     var deferreds = {},
@@ -119,10 +120,18 @@
 
                     function scroll(y) {
                         offset = (y > max) ? max : (y < min) ? min : y;
-                        inner.css({
-                            webkitTransform: 'translateY(' + (-offset) + 'px)',
-                            transform: 'translateY(' + (-offset) + 'px)'
-                        });
+                        
+                        //Check scroll method
+                        if(useCssTranslate) {
+	                        inner.css({
+	                            webkitTransform: 'translateY(' + (-offset) + 'px)',
+	                            transform: 'translateY(' + (-offset) + 'px)'
+	                        });
+                        }
+                        else {
+                        	inner.css({top: -offset + 'px'});
+                        }
+                        
                         indicator.css({
                             webkitTransform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)',
                             transform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)'
