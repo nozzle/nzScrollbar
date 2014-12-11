@@ -4,7 +4,7 @@ An amazingly simple scroll replacement for Angular!
 ## [Demo](http://codepen.io/tannerlinsley/pen/Eaxmwz)
 
 ## Install
-1. `bower install nz-sweet-alert`
+1. `bower install nz-scrollbar`
 2. Include files in your app
   1. `nzScrollbar.js`
 	2. `nzScrollbar.css`
