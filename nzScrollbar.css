@@ -35,6 +35,7 @@
     width: 4px;
     background-color: black;
     border: none;
+    min-height: 20px;
     -webkit-transition: width .3s ease, height .3s ease, opacity .3s ease, background-color .3s ease, border-radius .3s ease;
     transition: width .3s ease, height .3s ease, opacity .3s ease, background-color .3s ease, border-radius .3s ease;
 }

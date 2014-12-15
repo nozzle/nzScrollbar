@@ -17,6 +17,8 @@
                 ].join(' '),
                 link: function($scope, el, attrs) {
 
+                    initCrossBrowserWheelEvent();
+
                     var container,
                         inner,
                         indicator,
@@ -51,9 +53,6 @@
                     inner = angular.element(el[0].querySelector('.nzScrollbar-inner'));
                     indicator = angular.element(el[0].querySelector('.nzScrollbar-indicator'));
 
-                    // Init Watchers
-                    window.addEventListener('resize', debounce(build, 200));
-
                     // Touch Events
                     container[0].addEventListener('touchstart', tap);
 
@@ -61,15 +60,12 @@
                     indicator[0].addEventListener('mousedown', indicatorClick);
 
                     // Scroll Events
-                    if (container[0].addEventListener) {
-                        container[0].addEventListener("mousewheel", wheel, false); // IE9, Chrome, Safari, Opera
-                        container[0].addEventListener("DOMMouseScroll", wheel, false); // Firefox
-                    } else container[0].attachEvent("onmousewheel", wheel); // IE 6/7/8
+                    addWheelListener(container[0], wheel);
 
                     if (window.addResizeListener) {
-                        window.addResizeListener(inner[0], build);
+                        window.addResizeListener(inner[0], resize);
                         $scope.$on('$destroy', function() {
-                            window.removeResizeListener(inner[0], build);
+                            window.removeResizeListener(inner[0], resize);
                         });
                     }
 
@@ -85,23 +81,37 @@
                     }
 
                     function build() {
-                        containerHeight = parseInt(getComputedStyle(el[0]).height, 10);
-                        containerPadding = parseInt(getComputedStyle(el[0]).padding, 10);
-                        innerHeight = parseInt(getComputedStyle(inner[0]).height, 10);
-                        max = innerHeight - containerHeight + containerPadding * 2;
+                        containerPadding = parseInt(getStyle(el[0], 'paddingTop'), 10) + parseInt(getStyle(el[0], 'paddingBottom'), 10);
+                        containerPadding = containerPadding ? containerPadding : 0;
+                        containerHeight = el[0].scrollHeight - containerPadding;
+                        innerHeight = inner[0].scrollHeight;
+                        max = innerHeight - containerHeight + containerPadding;
                         max = max < 0 ? 0 : max;
-                        offset = min = 0;
+                        if (typeof offset === 'undefined') {
+                            offset = min = 0;
+                        }
 
                         // Styles
                         indicator.css({
-                            height: ((containerHeight - containerPadding) / innerHeight) * (containerHeight - containerPadding) + 'px',
-                            display: (containerHeight - containerPadding) / innerHeight >= 1 ? 'none' : 'initial'
+                            height: ((containerHeight) / innerHeight) * (containerHeight) + 'px',
+                            display: (containerHeight) / innerHeight >= 1 ? 'none' : 'initial'
                         });
 
                     }
 
+                    function resize() {
+                        build();
+                        scroll(offset);
+                    }
 
-
+                    function getStyle(el, cssprop) {
+                        if (el.currentStyle) //IE
+                            return el.currentStyle[cssprop];
+                        else if (document.defaultView && document.defaultView.getComputedStyle) //Firefox
+                            return document.defaultView.getComputedStyle(el, "")[cssprop];
+                        else //try and get inline style
+                            return el.style[cssprop];
+                    }
 
 
 
@@ -120,18 +130,19 @@
 
                     function scroll(y) {
                         offset = (y > max) ? max : (y < min) ? min : y;
-                        
+
                         //Check scroll method
-                        if(useCssTranslate) {
-	                        inner.css({
-	                            webkitTransform: 'translateY(' + (-offset) + 'px)',
-	                            transform: 'translateY(' + (-offset) + 'px)'
-	                        });
+                        if (useCssTranslate) {
+                            inner.css({
+                                webkitTransform: 'translateY(' + (-offset) + 'px)',
+                                transform: 'translateY(' + (-offset) + 'px)'
+                            });
+                        } else {
+                            inner.css({
+                                top: -offset + 'px'
+                            });
                         }
-                        else {
-                        	inner.css({top: -offset + 'px'});
-                        }
-                        
+
                         indicator.css({
                             webkitTransform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)',
                             transform: 'translateY(' + (offset / max * ((containerHeight) - parseInt(indicator.css('height')))) + 'px)'
@@ -169,16 +180,30 @@
 
                     function wheel(e) {
                         e = window.event || e; // old IE support
-                        var wheelSpeedDelta = -(e.deltaX || e.deltaY ? e.deltaY : null || e.detail || (-1 / 3 * e.wheelDelta)) / 40;
-                        offset -= wheelSpeedDelta * 30;
+
+                        // CrossBrowser Equalization
+                        var change = -(e.deltaY || e.detail || (-1 / 3 * e.wheelDelta)) / 40;
+                        change = isNaN(change) ? 0 : change;
+
+                        // Handle Physical Mouse Wheel in Firefox
+                        if (e.deltaMode && !e.wheelDelta) {
+                            change *= 8;
+                        }
+                        // Handle Everything else
+                        else {
+                            console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
+                        }
+
+                        // Regular Multipier
+                        offset -= change * 30;
 
                         scroll(offset);
 
                         if (offset === 0 || offset === max) {
                             return;
                         } else {
-                            e.preventDefault();
-                            e.stopPropagation();
+                            e.preventDefault(e);
+                            e.stopPropagation(e);
                             e.returnValue = false;
                             return false;
                         }
@@ -204,7 +229,7 @@
                             y = ypos(e);
                             delta = reference - y;
                             reference = y;
-                            delta *= (innerHeight / (containerHeight - containerPadding));
+                            delta *= (innerHeight / (containerHeight));
                             scroll(offset - delta);
                         }
                         e.preventDefault();
@@ -317,6 +342,78 @@
 
                             timeout = setTimeout(delayed, threshold || 100);
                         };
+                    }
+
+
+
+                    // CrossBrowser Wheel Listener.
+                    // https://developer.mozilla.org/en-US/docs/Web/Events/wheel
+                    function initCrossBrowserWheelEvent() {
+
+                        if (window.addWheelListener) {
+                            return;
+                        }
+
+                        var prefix = "",
+                            _addEventListener, onwheel, support;
+
+                        // detect event model
+                        if (window.addEventListener) {
+                            _addEventListener = "addEventListener";
+                        } else {
+                            _addEventListener = "attachEvent";
+                            prefix = "on";
+                        }
+
+                        // detect available wheel event
+                        support = "onwheel" in document.createElement("div") ? "wheel" : // Modern browsers support "wheel"
+                            document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
+                            "DOMMouseScroll"; // let's assume that remaining browsers are older Firefox
+
+                        window.addWheelListener = function(elem, callback, useCapture) {
+                            _addWheelListener(elem, support, callback, useCapture);
+
+                            // handle MozMousePixelScroll in older Firefox
+                            if (support == "DOMMouseScroll") {
+                                _addWheelListener(elem, "MozMousePixelScroll", callback, useCapture);
+                            }
+                        };
+
+                        function _addWheelListener(elem, eventName, callback, useCapture) {
+                            elem[_addEventListener](prefix + eventName, support == "wheel" ? callback : function(originalEvent) {
+                                !originalEvent && (originalEvent = window.event);
+
+                                // create a normalized event object
+                                var event = {
+                                    // keep a ref to the original event object
+                                    originalEvent: originalEvent,
+                                    target: originalEvent.target || originalEvent.srcElement,
+                                    type: "wheel",
+                                    deltaMode: originalEvent.type == "MozMousePixelScroll" ? 0 : 1,
+                                    deltaX: 0,
+                                    deltaZ: 0,
+                                    preventDefault: function() {
+                                        originalEvent.preventDefault ?
+                                            originalEvent.preventDefault() :
+                                            originalEvent.returnValue = false;
+                                    }
+                                };
+
+                                // calculate deltaY (and deltaX) according to the event
+                                if (support == "mousewheel") {
+                                    event.deltaY = -1 / 40 * originalEvent.wheelDelta;
+                                    // Webkit also support wheelDeltaX
+                                    originalEvent.wheelDeltaX && (event.deltaX = -1 / 40 * originalEvent.wheelDeltaX);
+                                } else {
+                                    event.deltaY = originalEvent.detail;
+                                }
+
+                                // it's time to fire the callback
+                                return callback(event);
+
+                            }, useCapture || false);
+                        }
+
                     }
 
                 }
