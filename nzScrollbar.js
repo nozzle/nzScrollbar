@@ -200,7 +200,7 @@
                         }
                         // Handle Everything else
                         else {
-                            console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
+                            // console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
                         }
 
                         // Regular Multipier
