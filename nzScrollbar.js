@@ -97,6 +97,12 @@
                             display: (containerHeight) / innerHeight >= 1 ? 'none' : 'initial'
                         });
 
+                        /* add noScroll class to elements that won't scroll */
+                        if(containerHeight / innerHeight >= 1) {
+                          indicator.parent().addClass('noScroll');
+                          angular.element(el).addClass('noScroll');
+                        }
+
                     }
 
                     function resize() {
