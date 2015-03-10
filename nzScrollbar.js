@@ -97,6 +97,15 @@
                             display: (containerHeight) / innerHeight >= 1 ? 'none' : 'initial'
                         });
 
+                        if(angular.element(el).height() >= innerHeight) {
+                          indicator.parent().addClass('noScroll');
+                          angular.element(el).addClass('noScroll');
+                        } else {
+                          /* added for the resize case */
+                          indicator.parent().removeClass('noScroll');
+                          angular.element(el).removeClass('noScroll');
+                        }
+
                     }
 
                     function resize() {
@@ -191,7 +200,7 @@
                         }
                         // Handle Everything else
                         else {
-                            console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
+                            // console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
                         }
 
                         // Regular Multipier
