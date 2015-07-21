@@ -182,7 +182,7 @@
                         e = window.event || e; // old IE support
 
                         // CrossBrowser Equalization
-                        var change = -(e.deltaY || e.detail || (-1 / 3 * e.wheelDelta)) / 40;
+                        var change = -(e.deltaY || e.detail || (-1 / 3 * e.wheelDelta)) / 20;
                         change = isNaN(change) ? 0 : change;
 
                         // Handle Physical Mouse Wheel in Firefox
@@ -191,7 +191,7 @@
                         }
                         // Handle Everything else
                         else {
-                            console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
+                            /*console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);*/
                         }
 
                         // Regular Multipier
