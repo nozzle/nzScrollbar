@@ -68,6 +68,10 @@
                             window.removeResizeListener(inner[0], resize);
                         });
                     }
+                    
+                    $scope.$on('content.changed', function (e) {
+                        resize();
+                    });
 
                     init();
 
