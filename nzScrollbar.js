@@ -41,7 +41,8 @@
                         amplitude,
                         target,
                         timeConstant,
-                        useCssTranslate = attrs.useCssTranslate !== "false";
+                        useCssTranslate = attrs.useCssTranslate !== "false",
+                        scrollMargin = attrs.scrollMargin !== 0;
 
                     var wheelSpeed = 40;
                     var deferreds = {},
@@ -68,6 +69,10 @@
                             window.removeResizeListener(inner[0], resize);
                         });
                     }
+                    
+                    $scope.$on('content.changed', function (e) {
+                        resize();
+                    });
 
                     init();
 
@@ -132,6 +137,11 @@
                         offset = (y > max) ? max : (y < min) ? min : y;
 
                         //Check scroll method
+                        if (scrollMargin){
+                            if (y > max - attrs.scrollMargin){
+                                $scope.$emit('content.reachedBottom');
+                            }
+                        }
                         if (useCssTranslate) {
                             inner.css({
                                 webkitTransform: 'translateY(' + (-offset) + 'px)',
@@ -182,7 +192,7 @@
                         e = window.event || e; // old IE support
 
                         // CrossBrowser Equalization
-                        var change = -(e.deltaY || e.detail || (-1 / 3 * e.wheelDelta)) / 40;
+                        var change = -(e.deltaY || e.detail || (-1 / 3 * e.wheelDelta)) / 20;
                         change = isNaN(change) ? 0 : change;
 
                         // Handle Physical Mouse Wheel in Firefox
@@ -191,7 +201,7 @@
                         }
                         // Handle Everything else
                         else {
-                            console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);
+                            /*console.log(e.deltaY, e.detail, -(-1 / 3 * e.wheelDelta) / 40);*/
                         }
 
                         // Regular Multipier
