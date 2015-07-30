@@ -41,7 +41,8 @@
                         amplitude,
                         target,
                         timeConstant,
-                        useCssTranslate = attrs.useCssTranslate !== "false";
+                        useCssTranslate = attrs.useCssTranslate !== "false",
+                        scrollMargin = attrs.scrollMargin !== 0;
 
                     var wheelSpeed = 40;
                     var deferreds = {},
@@ -136,6 +137,11 @@
                         offset = (y > max) ? max : (y < min) ? min : y;
 
                         //Check scroll method
+                        if (scrollMargin){
+                            if (y > max - attrs.scrollMargin){
+                                $scope.$emit('content.reachedBottom');
+                            }
+                        }
                         if (useCssTranslate) {
                             inner.css({
                                 webkitTransform: 'translateY(' + (-offset) + 'px)',
