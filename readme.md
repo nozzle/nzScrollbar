@@ -1,4 +1,6 @@
 # nzScrollbar
+
+[![Join the chat at https://gitter.im/nozzle/nzScrollbar](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nozzle/nzScrollbar?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 An amazingly simple scroll replacement for Angular!
 
 ## [Demo](http://codepen.io/tannerlinsley/pen/Eaxmwz)
