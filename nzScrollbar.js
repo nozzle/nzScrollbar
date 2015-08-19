@@ -255,6 +255,14 @@
 
                         indicatorPressed = false;
 
+                        var indicatorElement = angular.element('.skip-click-outside-nz-scrollbar');
+                        if (e.pageX > indicatorElement.offset().left + indicatorElement.width() || e.pageX < indicatorElement.offset().left){
+                            $scope.indicatorReleased = true;
+                        }
+                        if (e.pageY > indicatorElement.offset().top + indicatorElement.height() || e.pageY < indicatorElement.offset().top){
+                            $scope.indicatorReleased = true;
+                        }
+                        
                         e.preventDefault();
                         e.stopPropagation();
                         return false;
