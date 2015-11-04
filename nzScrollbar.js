@@ -95,11 +95,10 @@
                         if (typeof offset === 'undefined') {
                             offset = min = 0;
                         }
-
                         // Styles
                         indicator.css({
                             height: ((containerHeight) / innerHeight) * (containerHeight) + 'px',
-                            display: (containerHeight) / innerHeight >= 1 ? 'none' : 'initial'
+                            display: (containerHeight) / innerHeight >= 1 ? 'none' : 'block'
                         });
 
                     }
@@ -212,8 +211,13 @@
                         if (offset === 0 || offset === max) {
                             return;
                         } else {
-                            e.preventDefault(e);
-                            e.stopPropagation(e);
+                            if (e.stopPropagation) {
+                              e.preventDefault(e);
+                              e.stopPropagation(e);
+                            }
+                            else {
+                              e.cancelBubble = true;
+                            }
                             e.returnValue = false;
                             return false;
                         }
@@ -255,6 +259,14 @@
 
                         indicatorPressed = false;
 
+                        var indicatorElement = angular.element('.skip-click-outside-nz-scrollbar');
+                        if (e.pageX > indicatorElement.offset().left + indicatorElement.width() || e.pageX < indicatorElement.offset().left){
+                            $scope.indicatorReleased = true;
+                        }
+                        if (e.pageY > indicatorElement.offset().top + indicatorElement.height() || e.pageY < indicatorElement.offset().top){
+                            $scope.indicatorReleased = true;
+                        }
+                        
                         e.preventDefault();
                         e.stopPropagation();
                         return false;
